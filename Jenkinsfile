@@ -1,39 +1,23 @@
 pipeline {
-
     agent any
 
     stages {
 
-        stage('Clone') {
-
+        stage('Build Docker Image') {
             steps {
-
-                echo 'Repository downloaded'
-
+                sh 'docker build -t cicd-dashboard:v1 .'
             }
-
-        }
-
-        stage('Build') {
-
-            steps {
-
-                echo 'Building Application'
-
-            }
-
-        }
-
-        stage('Test') {
-
-            steps {
-
-                echo 'Running Tests'
-
-            }
-
         }
 
     }
 
+    post {
+        success {
+            echo 'Docker image built successfully!'
+        }
+
+        failure {
+            echo 'Docker image build failed!'
+        }
+    }
 }
