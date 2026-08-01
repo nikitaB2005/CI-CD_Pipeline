@@ -1,0 +1,26 @@
+
+{
+    "application":"CI/CD Dashboard",
+
+    "environment":"Development",
+
+    "version":"v1.0.0",
+
+    "branch":"main",
+
+    "commit":"Not Available",
+
+    "docker_image":"Not Built",
+
+    "build_number":"0",
+
+    "pipeline_status":"Waiting",
+
+    "deployment_time":"Not Deployed",
+
+    "pods":"0",
+
+    "server":"Local Machine",
+
+    "health":"Healthy"
+}

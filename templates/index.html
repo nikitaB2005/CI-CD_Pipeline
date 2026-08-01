@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CI/CD Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<h1>CI/CD Build Information Dashboard</h1>
+
+<table>
+
+<tr>
+    <td>Application</td>
+    <td>{{ build.application }}</td>
+</tr>
+
+<tr>
+    <td>Environment</td>
+    <td>{{ build.environment }}</td>
+</tr>
+
+<tr>
+    <td>Version</td>
+    <td>{{ build.version }}</td>
+</tr>
+
+<tr>
+    <td>Branch</td>
+    <td>{{ build.branch }}</td>
+</tr>
+
+<tr>
+    <td>Commit</td>
+    <td>{{ build.commit }}</td>
+</tr>
+
+<tr>
+    <td>Docker Image</td>
+    <td>{{ build.docker_image }}</td>
+</tr>
+
+<tr>
+    <td>Build Number</td>
+    <td>{{ build.build_number }}</td>
+</tr>
+
+<tr>
+    <td>Pipeline Status</td>
+    <td>{{ build.pipeline_status }}</td>
+</tr>
+
+<tr>
+    <td>Deployment Time</td>
+    <td>{{ build.deployment_time }}</td>
+</tr>
+
+<tr>
+    <td>Pods Running</td>
+    <td>{{ build.pods }}</td>
+</tr>
+
+<tr>
+    <td>Server</td>
+    <td>{{ build.server }}</td>
+</tr>
+
+</table>
+
+</body>
+</html>
