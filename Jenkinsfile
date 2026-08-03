@@ -75,36 +75,31 @@ pipeline {
             }
         }
 
-stage('Deploy to Kubernetes') {
+        stage('Deploy to Kubernetes') {
 
-    steps {
+            steps {
+                sh """
+                echo "Current Context"
+                kubectl config current-context
 
-        withCredentials([
-            file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')
-        ]) {
+                echo "Nodes"
+                kubectl get nodes
 
-            sh """
-            echo "Current Context"
-            kubectl config current-context
+                echo "Deploying..."
 
-            echo "Nodes"
-            kubectl get nodes
+                kubectl apply -f deployment.yaml
+                kubectl apply -f service.yaml
 
-            echo "Deploying..."
+                kubectl set image deployment/cicd-dashboard \
+                dashboard=${IMAGE_NAME}:${IMAGE_TAG}
 
-            kubectl apply -f deployment.yaml
-            kubectl apply -f service.yaml
+                kubectl rollout status deployment/cicd-dashboard
 
-            kubectl set image deployment/cicd-dashboard \
-            dashboard=${IMAGE_NAME}:${IMAGE_TAG}
-
-            kubectl rollout status deployment/cicd-dashboard
-
-            kubectl get pods
-            """
+                kubectl get pods
+                """
+            }
         }
-    }
-}
+
         stage('Update Deployment Status') {
 
             steps {
@@ -135,9 +130,7 @@ stage('Deploy to Kubernetes') {
 
             steps {
 
-                withCredentials([
-                file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')
-            ]) {
+             
 
                 sh '''
                 kubectl get pods
@@ -145,7 +138,7 @@ stage('Deploy to Kubernetes') {
                 '''
             }
         }
-    }
+    
 
     }
 
@@ -158,11 +151,16 @@ stage('Deploy to Kubernetes') {
             echo "======================================="
         }
 
-        failure {
-            echo "======================================="
-            echo "Pipeline Failed!"
-            echo "Check Console Output."
-            echo "======================================="
+       failure {
+
+            echo "Deployment failed. Starting rollback..."
+
+            sh '''
+            kubectl rollout undo deployment/cicd-dashboard || true
+            kubectl rollout status deployment/cicd-dashboard || true
+            '''
+
+            echo "Rollback completed"
         }
 
     }
