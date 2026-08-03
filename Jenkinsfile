@@ -100,30 +100,27 @@ pipeline {
             }
         }
 
-        stage('Update Deployment Status') {
-
+       stage('Update Deployment Status') {
             steps {
-
                 sh '''
                 PODS=$(kubectl get pods --no-headers | wc -l)
 
-                python3 - <<EOF
+                python3 <<EOF
                 import json
 
                 with open("build_info.json") as f:
-                data=json.load(f)
+                data = json.load(f)
 
-                data["pipeline_status"]="SUCCESS"
-                data["deployment_time"]="Deployed"
-                data["pods"]="$PODS"
+                data["pipeline_status"] = "SUCCESS"
+                data["deployment_time"] = "Deployed"
+                data["pods"] = "$PODS"
 
-                with open("build_info.json","w") as f:
-                json.dump(data,f,indent=4)
-
+                with open("build_info.json", "w") as f:
+                json.dump(data, f, indent=4)
                 EOF
                 '''
-             }
             }
+        }
 
 
         stage('Verify Deployment') {
