@@ -75,27 +75,36 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+stage('Deploy to Kubernetes') {
 
-            steps {
+    steps {
 
-                withCredentials([
-                file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')
-            ]) {
+        withCredentials([
+            file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')
+        ]) {
 
-                sh '''
-                kubectl get nodes
+            sh """
+            echo "Current Context"
+            kubectl config current-context
 
-                kubectl apply -f deployment.yaml
+            echo "Nodes"
+            kubectl get nodes
 
-                kubectl apply -f service.yaml
+            echo "Deploying..."
 
-                kubectl set image deployment/cicd-dashboard \
-                dashboard=${IMAGE_NAME}:${IMAGE_TAG}
-                '''
-            }
+            kubectl apply -f deployment.yaml
+            kubectl apply -f service.yaml
+
+            kubectl set image deployment/cicd-dashboard \
+            dashboard=${IMAGE_NAME}:${IMAGE_TAG}
+
+            kubectl rollout status deployment/cicd-dashboard
+
+            kubectl get pods
+            """
         }
     }
+}
         stage('Update Deployment Status') {
 
             steps {

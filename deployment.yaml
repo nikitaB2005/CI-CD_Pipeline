@@ -7,23 +7,25 @@ metadata:
 spec:
   replicas: 3
 
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+
   selector:
     matchLabels:
       app: cicd-dashboard
 
   template:
-
     metadata:
       labels:
         app: cicd-dashboard
 
     spec:
-
       containers:
-
       - name: dashboard
-
-        image: nikitabalwada/cicd-dashboard:6
+        image: nikitabalwada/cicd-dashboard:latest
         imagePullPolicy: Always
 
         ports:
