@@ -15,6 +15,33 @@ pipeline {
             }
         }
 
+        stage('Update Build Information') {
+
+            steps {
+
+                sh '''
+                COMMIT_ID=$(git rev-parse --short HEAD)
+
+                cat > build_info.json <<EOF
+                {
+                "application":"CI/CD Dashboard",
+                "environment":"Development",
+                "version":"v1.0.${BUILD_NUMBER}",
+                "branch":"main",
+                "commit":"${COMMIT_ID}",
+                "docker_image":"${IMAGE_NAME}:${IMAGE_TAG}",
+                "build_number":"${BUILD_NUMBER}",
+                "pipeline_status":"BUILDING",
+                "deployment_time":"Not Deployed",
+                "pods":"0",
+                "server":"Kubernetes",
+                "health":"Healthy"
+                }
+                EOF
+                 '''
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 sh "docker build -t cicd-dashboard:${IMAGE_TAG} ."
@@ -69,6 +96,30 @@ pipeline {
             }
         }
     }
+        stage('Update Deployment Status') {
+
+            steps {
+
+                sh '''
+                PODS=$(kubectl get pods --no-headers | wc -l)
+
+                python3 - <<EOF
+                import json
+
+                with open("build_info.json") as f:
+                data=json.load(f)
+
+                data["pipeline_status"]="SUCCESS"
+                data["deployment_time"]="Deployed"
+                data["pods"]="$PODS"
+
+                with open("build_info.json","w") as f:
+                json.dump(data,f,indent=4)
+
+                EOF
+                '''
+             }
+            }
 
 
         stage('Verify Deployment') {
