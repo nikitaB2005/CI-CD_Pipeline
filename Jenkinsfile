@@ -48,6 +48,22 @@ pipeline {
             }
         }
 
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh """kubectl set image deployment/cicd-dashboard \dashboard=${IMAGE_NAME}:${IMAGE_TAG}
+                kubectl rollout status deployment/cicd-dashboard"""
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh '''
+                kubectl get pods
+                kubectl get svc
+                '''
+            }
+        }
+
     }
 
     post {
