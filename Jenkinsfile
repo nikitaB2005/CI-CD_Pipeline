@@ -49,28 +49,43 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
+
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+
+                withCredentials([
+                file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')
+            ]) {
 
                 sh '''
                 kubectl get nodes
 
+                kubectl apply -f deployment.yaml
+
+                kubectl apply -f service.yaml
+
                 kubectl set image deployment/cicd-dashboard \
-                dashboard=nikitabalwada/cicd-dashboard:${BUILD_NUMBER}
+                cicd-dashboard=${IMAGE_NAME}:${IMAGE_TAG}
                 '''
-                }
             }
+        }
     }
 
 
         stage('Verify Deployment') {
+
             steps {
+
+                withCredentials([
+                file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')
+            ]) {
+
                 sh '''
                 kubectl get pods
                 kubectl get svc
                 '''
             }
         }
+    }
 
     }
 
