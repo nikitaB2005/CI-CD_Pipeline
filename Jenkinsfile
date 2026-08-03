@@ -50,12 +50,18 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh """
-                kubectl set image deployment/cicd-dashboard dashboard=${IMAGE_NAME}:${IMAGE_TAG}
-                kubectl rollout status deployment/cicd-dashboard
-            """
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+
+                sh '''
+                kubectl get nodes
+
+                kubectl set image deployment/cicd-dashboard \
+                dashboard=nikitabalwada/cicd-dashboard:${BUILD_NUMBER}
+                '''
+                }
             }
-}
+    }
+
 
         stage('Verify Deployment') {
             steps {
