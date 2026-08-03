@@ -64,7 +64,7 @@ pipeline {
                 kubectl apply -f service.yaml
 
                 kubectl set image deployment/cicd-dashboard \
-                cicd-dashboard=${IMAGE_NAME}:${IMAGE_TAG}
+                dashboard=${IMAGE_NAME}:${IMAGE_TAG}
                 '''
             }
         }
