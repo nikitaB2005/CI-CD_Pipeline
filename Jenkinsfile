@@ -16,19 +16,17 @@ pipeline {
         }
 
         stage('Update Build Information') {
-
             steps {
+                sh """
+                COMMIT_ID=\$(git rev-parse --short HEAD)
 
-                sh '''
-                COMMIT_ID=$(git rev-parse --short HEAD)
-
-                cat > build_info.json <<EOF
-                {
+            cat > build_info.json <<EOF
+            {
                 "application":"CI/CD Dashboard",
                 "environment":"Development",
                 "version":"v1.0.${BUILD_NUMBER}",
                 "branch":"main",
-                "commit":"${COMMIT_ID}",
+                "commit":"\$COMMIT_ID",
                 "docker_image":"${IMAGE_NAME}:${IMAGE_TAG}",
                 "build_number":"${BUILD_NUMBER}",
                 "pipeline_status":"BUILDING",
@@ -36,11 +34,11 @@ pipeline {
                 "pods":"0",
                 "server":"Kubernetes",
                 "health":"Healthy"
-                }
-                EOF
-                 '''
             }
-        }
+            EOF
+            """
+         }
+    }
 
         stage('Build Docker Image') {
             steps {
