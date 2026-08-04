@@ -43,11 +43,8 @@ pipeline {
         stage('Run Automated Tests') {
             steps {
                 sh '''
-                    python3 -m venv venv
-                    . venv/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
-                    pytest test_app.py -v --junitxml=test-results.xml
+                pip3 install --break-system-packages --quiet -r requirements.txt
+                pytest test_app.py -v --junitxml=test-results.xml
                 '''
             }
         }
