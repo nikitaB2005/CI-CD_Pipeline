@@ -44,7 +44,7 @@ pipeline {
             steps {
                 sh '''
                 pip3 install --break-system-packages --quiet -r requirements.txt
-                pytest test_app.py -v --junitxml=test-results.xml
+                python3 -m pytest test_app.py -v --junitxml=test-results.xml
                 '''
             }
         }
