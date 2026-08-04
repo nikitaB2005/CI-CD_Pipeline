@@ -1,5 +1,4 @@
 pipeline {
-
     agent any
 
     environment {
@@ -8,7 +7,6 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout Source Code') {
             steps {
                 checkout scm
@@ -19,11 +17,10 @@ pipeline {
             steps {
                 script {
                     env.COMMIT_ID = sh(
-                    script: "git rev-parse --short HEAD",
-                    returnStdout: true
-                     ).trim()
+                        script: "git rev-parse --short HEAD",
+                        returnStdout: true
+                    ).trim()
                 }
-
                 writeFile file: 'build_info.json', text: """
     {
         "application":"CI/CD Dashboard",
@@ -38,10 +35,22 @@ pipeline {
         "pods":"0",
         "server":"Kubernetes",
         "health":"Healthy"
-    }
+        }
             """
         }
     }
+
+        stage('Run Automated Tests') {
+            steps {
+                sh '''
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                    pytest test_app.py -v --junitxml=test-results.xml
+                '''
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
@@ -62,9 +71,8 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-
                     sh '''
-                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                     '''
                 }
             }
@@ -77,26 +85,23 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
-
             steps {
                 sh """
-                echo "Current Context"
-                kubectl config current-context
+                    echo "Current Context"
+                    kubectl config current-context
 
-                echo "Nodes"
-                kubectl get nodes
+                    echo "Nodes"
+                    kubectl get nodes
 
-                echo "Deploying..."
+                    echo "Deploying..."
+                    kubectl apply -f deployment.yaml
+                    kubectl apply -f service.yaml
 
-                kubectl apply -f deployment.yaml
-                kubectl apply -f service.yaml
+                    kubectl set image deployment/cicd-dashboard \
+                        dashboard=${IMAGE_NAME}:${IMAGE_TAG}
 
-                kubectl set image deployment/cicd-dashboard \
-                dashboard=${IMAGE_NAME}:${IMAGE_TAG}
-
-                kubectl rollout status deployment/cicd-dashboard
-
-                kubectl get pods
+                    kubectl rollout status deployment/cicd-dashboard
+                    kubectl get pods
                 """
             }
         }
@@ -104,56 +109,43 @@ pipeline {
         stage('Update Deployment Status') {
             steps {
                 sh '''
-                PODS=$(kubectl get pods --no-headers | wc -l)
-
-                echo "=================================="
-                echo "Deployment Successful"
-                echo "Running Pods: $PODS"
-                echo "=================================="
-
-                kubectl get pods
+                    PODS=$(kubectl get pods --no-headers | wc -l)
+                    echo "=================================="
+                    echo "Deployment Successful"
+                    echo "Running Pods: $PODS"
+                    echo "=================================="
+                    kubectl get pods
                 '''
             }
         }
-
 
         stage('Verify Deployment') {
-
             steps {
-
-             
-
                 sh '''
-                kubectl get pods
-                kubectl get svc
+                    kubectl get pods
+                    kubectl get svc
                 '''
             }
         }
-    
-
     }
 
     post {
-
+        always {
+            junit allowEmptyResults: true, testResults: 'test-results.xml'
+        }
         success {
             echo "======================================="
             echo "Pipeline Executed Successfully!"
             echo "Docker Image: ${IMAGE_NAME}:${IMAGE_TAG}"
             echo "======================================="
         }
-
-       failure {
-
+        failure {
             echo "Deployment failed. Starting rollback..."
-
             sh '''
-            kubectl rollout undo deployment/cicd-dashboard || true
-            kubectl rollout status deployment/cicd-dashboard || true
+                kubectl rollout undo deployment/cicd-dashboard || true
+                kubectl rollout status deployment/cicd-dashboard || true
             '''
-
             echo "Rollback completed"
         }
-
     }
-
 }
