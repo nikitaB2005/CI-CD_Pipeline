@@ -20,25 +20,30 @@ pipeline {
                 sh """
                 COMMIT_ID=\$(git rev-parse --short HEAD)
 
-            cat > build_info.json <<EOF
-            {
-                "application":"CI/CD Dashboard",
-                "environment":"Development",
-                "version":"v1.0.${BUILD_NUMBER}",
-                "branch":"main",
-                "commit":"\$COMMIT_ID",
-                "docker_image":"${IMAGE_NAME}:${IMAGE_TAG}",
-                "build_number":"${BUILD_NUMBER}",
-                "pipeline_status":"BUILDING",
-                "deployment_time":"Not Deployed",
-                "pods":"0",
-                "server":"Kubernetes",
-                "health":"Healthy"
-            }
-            EOF
-            """
-         }
+                python3 - <<END
+        import json
+
+        data = {
+            "application": "CI/CD Dashboard",
+            "environment": "Development",
+            "version": "v1.0.${BUILD_NUMBER}",
+            "branch": "main",
+            "commit": "$COMMIT_ID",
+            "docker_image": "${IMAGE_NAME}:${IMAGE_TAG}",
+            "build_number": "${BUILD_NUMBER}",
+            "pipeline_status": "BUILDING",
+            "deployment_time": "Not Deployed",
+            "pods": "0",
+            "server": "Kubernetes",
+            "health": "Healthy"
     }
+
+    with open("build_info.json", "w") as f:
+    json.dump(data, f, indent=4)
+    END
+        """
+    }
+}
 
         stage('Build Docker Image') {
             steps {
