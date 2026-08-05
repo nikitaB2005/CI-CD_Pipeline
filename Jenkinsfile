@@ -13,56 +13,32 @@ pipeline {
             }
         }
 
-        stage('Deployment Status') {
-
+        stage('Update Build Information') {
             steps {
-
                 script {
-
-                    def deploymentTime = sh(
-                        script: "date '+%Y-%m-%d %H:%M:%S'",
+                    env.COMMIT_ID = sh(
+                        script: "git rev-parse --short HEAD",
                         returnStdout: true
                     ).trim()
-
-
-                    def runningPods = sh(
-                        script: "kubectl get pods --no-headers | grep Running | wc -l",
-                        returnStdout: true
-                    ).trim()
-
-
-                    def healthStatus = "Healthy"
-
-
-            writeFile file: 'build_info.json', text: """
-{
-    "application":"CI/CD Dashboard",
-    "environment":"Development",
-    "version":"v1.0.${BUILD_NUMBER}",
-    "branch":"main",
-    "commit":"${env.COMMIT_ID}",
-    "docker_image":"${IMAGE_NAME}:${IMAGE_TAG}",
-    "build_number":"${BUILD_NUMBER}",
-    "pipeline_status":"SUCCESS",
-    "deployment_time":"${deploymentTime}",
-    "pods":"${runningPods}",
-    "server":"Kubernetes",
-    "health":"${healthStatus}"
-}
-"""
-
+                }
+                writeFile file: 'build_info.json', text: """
+    {
+        "application":"CI/CD Dashboard",
+        "environment":"Development",
+        "version":"v1.0.${BUILD_NUMBER}",
+        "branch":"main",
+        "commit":"${env.COMMIT_ID}",
+        "docker_image":"${IMAGE_NAME}:${IMAGE_TAG}",
+        "build_number":"${BUILD_NUMBER}",
+        "pipeline_status":"BUILDING",
+        "deployment_time":"Not Deployed",
+        "pods":"0",
+        "server":"Kubernetes",
+        "health":"Healthy"
         }
-
-
-        sh '''
-        echo "=================================="
-        echo "Deployment Successful"
-        echo "Running Pods:"
-        kubectl get pods
-        echo "=================================="
-        '''
+            """
+        }
     }
-}
 
         stage('Run Automated Tests') {
             steps {
