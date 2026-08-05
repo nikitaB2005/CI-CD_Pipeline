@@ -13,7 +13,7 @@ pipeline {
             }
         }
 
-        stage('Update Deployment Status') {
+        stage('Deployment Status') {
 
             steps {
 
